@@ -1,5 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from time import perf_counter
+
+def timer(function):
+    '''General purpose timing decorator\n
+    Before using make sure perf_counter is imported'''
+    def wrapper(*args,**kwargs):
+        start = perf_counter()
+        function(*args,**kwargs)
+        stop = perf_counter()
+        print(f'Execution took {stop-start}')
+    return wrapper
 
 def cycle_cross_over(P1: list,P2: list) -> list[int]:
     def get_child(P1: list,P2: list): 
@@ -27,7 +38,7 @@ def mutation(P: list) -> list[int]:
     P[i1],P[i2] = P[i2],P[i1]
     return P
 
-def city_cord_reader(path: str) -> list[tuple[int, int]]:
+def city_cord_reader(path: str) -> list[tuple[float,float]]:
     '''Reads the file provided as a path that contains the coordinates of cities\n
     The coordinates should be written in seperate lines in [ ] square
     brackets and separated by spaces'''
@@ -38,9 +49,13 @@ def city_cord_reader(path: str) -> list[tuple[int, int]]:
         iy1, iy2 = usefull_data[1].find('[')+1, usefull_data[1].find(']')
         x, y = usefull_data[0][ix1:ix2], usefull_data[1][iy1:iy2]
         x, y = x.split(' '), y.split(' ')
+        x = [i for i in x if i]
+        y = [i for i in y if i]
+        if len(x)!=len(y):
+            raise Exception("Lengths don't match, file may be corrupted")
         cords = []
         for xval,yval in zip(x,y):
-            cords.append((int(xval), int(yval)))
+            cords.append((float(xval), float(yval)))
     return cords
 
 def init_population(n: int, pop: int) -> list[list[int]]:
@@ -80,6 +95,24 @@ def selection(population:list[list], distance_map: dict):
         probs.append(probability(cost))
     return probs
 
+def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
+    '''Takes the city coordinated as a list of (x,y) tuples
+      as well as the chromosome that determines the path'''
+    for city in city_coordinates:
+        x,y = city
+        plt.plot(x,y,'ro')
+
+    for i,city in enumerate(city_coordinates[:-1]):
+        x,y = city
+        xi,yi = city_coordinates[i+1]
+        plt.plot([x,xi],[y,yi],'k')
+
+    x,y = city_coordinates[0]
+    xi,yi = city_coordinates[-1]    
+    plt.plot([x,xi],[y,yi],'k')
+    plt.axis('off')
+    plt.show()
+
 def test_cycle_cross_over(repeats):
     for i in range(repeats):
         tester = []
@@ -96,14 +129,14 @@ def test_cycle_cross_over(repeats):
     else:
         print('Success!!!')
 
-test_cycle_cross_over(10000)
+# test_cycle_cross_over(10000)
 
 # x = [0, 3, 6, 7, 15, 12, 14, 9, 7, 0]
 # y = [1, 4, 5, 3, 0 ,4, 10, 6, 9, 10]
 # plt.plot(x,y,'ro')
 # plt.show()
 
-# P1 = [3,4,5,6,7,8]
+P1 = [3,4,5,6,7,8]
 # P2 = [8,5,6,7,3,4]
 # P1 = [2,4,5,1,3]
 # P2 = [1,5,4,2,3]
@@ -115,15 +148,16 @@ test_cycle_cross_over(10000)
 # print(cross)
 # test = mutation(P1.copy())        
 
+# cords : list[tuple] = city_cord_reader('Traveling Salesman Problem Data-20230314\cities_4.txt')
+# distances = city_dist_map(cords)
+# print(distances[1][9])
+
 # for founder in cords:
 #     x,y = founder
 #     plt.plot(x,y, 'ro')
 
 # plt.show()
 
-cords : list[tuple] = city_cord_reader('Traveling Salesman Problem Data-20230314\cities_1.txt')
-distances = city_dist_map(cords)
-# print(distances[1][9])
-
+# plot_path(cords,P1)
 # pop = init_population(6,100)
 # print(max(selection(pop,distances)))
