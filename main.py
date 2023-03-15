@@ -12,7 +12,7 @@ def timer(function):
         print(f'Execution took {stop-start}')
     return wrapper
 
-def cycle_cross_over(P1: list,P2: list) -> list[int]:
+def cycle_cross_over(P1: list,P2: list) -> list[list[int],list[int]]:
     def get_child(P1: list,P2: list): 
         Offspring: list = [None for i in range(len(P1))]
         index = 0
@@ -29,7 +29,15 @@ def cycle_cross_over(P1: list,P2: list) -> list[int]:
             for i in nones:
                 Offspring[i] = P2[i]
         return Offspring
-    return get_child(P1,P2),get_child(P2,P1)
+    return [get_child(P1,P2),get_child(P2,P1)]
+
+def offspring(parents: list[list]) -> list[list[int]]:
+    mothers = parents[:len(parents)/2]
+    fathers = parents[len(parents)/2:]
+    kids = []
+    for mother, father in zip(mothers, fathers):
+        kids.extend(cycle_cross_over(mother, father))
+    return kids
 
 def mutation(P: list) -> list[int]:
     chosen = np.random.choice(P,2, replace=False)
@@ -84,16 +92,30 @@ def cost_value_individual(distance_map: dict, chromosome: list[int]) -> float:
         cost += distance_map[chromosome[i]][i+1]
     return cost
 
-def probability(cost: float) -> float:
+def invert_cost(cost: float) -> float:
     cost_val = 1/cost
     return cost_val
 
-def selection(population:list[list], distance_map: dict):
-    probs = []
-    for pop in population:
-        cost = cost_value_individual(distance_map,pop)
-        probs.append(probability(cost))
-    return probs
+def probability(tis:list[float]) -> list[float]:
+    sum_tis = sum(tis)
+    pie = [ti/sum_tis for ti in tis]
+    return pie
+
+def proportional_selection(population:list[list], distance_map: dict,n:float):
+    fis = [invert_cost(cost_value_individual(distance_map,pop)) for pop in population]
+    mf = max(fis)
+    tis = [mf - fi for fi in fis]
+    probs = probability(tis)
+    parents = []
+    for i in range(int(n*len(population))):
+        pisum = 0
+        j = 0
+        r = np.random.uniform(0,1)
+        while pisum <= r:
+            pisum += probs[j]
+            j += 1
+        parents.append(population[j-1])
+    return parents
 
 def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
     '''Takes the city coordinated as a list of (x,y) tuples
@@ -129,12 +151,19 @@ def test_cycle_cross_over(repeats):
     else:
         print('Success!!!')
 
-# test_cycle_cross_over(10000)
+def GA(path:str,population:int,mutation_chance:float,n:float,iterations:int):
+    cities = city_cord_reader(path)
+    distances = city_dist_map(cities)
+    N = len(cities)
+    Population = init_population(N,population)
+    for i in range(iterations):
+        Parents = proportional_selection(Population,distances,n)
+        Offspring = offspring(Parents)
+        # apply mutation to mutation_chance offspring
+        # select best population (num of population)
 
-# x = [0, 3, 6, 7, 15, 12, 14, 9, 7, 0]
-# y = [1, 4, 5, 3, 0 ,4, 10, 6, 9, 10]
-# plt.plot(x,y,'ro')
-# plt.show()
+
+# test_cycle_cross_over(10000)
 
 P1 = [3,4,5,6,7,8]
 # P2 = [8,5,6,7,3,4]
@@ -148,16 +177,11 @@ P1 = [3,4,5,6,7,8]
 # print(cross)
 # test = mutation(P1.copy())        
 
-# cords : list[tuple] = city_cord_reader('Traveling Salesman Problem Data-20230314\cities_4.txt')
+# cords : list[tuple] = city_cord_reader('Traveling Salesman Problem Data-20230314\cities_1.txt')
 # distances = city_dist_map(cords)
 # print(distances[1][9])
 
-# for founder in cords:
-#     x,y = founder
-#     plt.plot(x,y, 'ro')
-
-# plt.show()
-
 # plot_path(cords,P1)
 # pop = init_population(6,100)
+# print(sum(proportional_selection(pop,distances)))
 # print(max(selection(pop,distances)))
