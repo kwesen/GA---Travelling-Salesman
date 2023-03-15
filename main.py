@@ -101,10 +101,14 @@ def probability(tis:list[float]) -> list[float]:
     pie = [ti/sum_tis for ti in tis]
     return pie
 
-def proportional_selection(population:list[list], distance_map: dict,n:float):
+def fitness(population: list[list],distance_map:dict):
     fis = [invert_cost(cost_value_individual(distance_map,pop)) for pop in population]
     mf = max(fis)
     tis = [mf - fi for fi in fis]
+    return tis
+
+def proportional_selection(population:list[list], distance_map: dict, n:float):
+    tis = fitness(population, distance_map)
     probs = probability(tis)
     parents = []
     for i in range(int(n*len(population))):
@@ -116,6 +120,12 @@ def proportional_selection(population:list[list], distance_map: dict,n:float):
             j += 1
         parents.append(population[j-1])
     return parents
+
+def selection_of_best_individuals(population: list[list], distance_map: dict, population_count: int) -> list[list]:
+    tis = fitness(population, distance_map)
+    probs = probability(tis)
+    best_individuals = [x for _,x in sorted(zip(probs,population), key= lambda pair: pair[0])] # nice general sorting thanks stack overflow <3        
+    return best_individuals[:population_count]
 
 def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
     '''Takes the city coordinated as a list of (x,y) tuples
@@ -143,24 +153,24 @@ def test_cycle_cross_over(repeats):
         for specimen1,specimen2 in zip(pool1,pool2):
             uno,duo = cycle_cross_over(specimen1,specimen1)
             if len(set(uno))!=len(uno)  or len(set(duo))!=len(duo):
-                print(f'1:{specimen1} 2:{specimen2} c1:{uno} c2:{duo}')
-                raise Exception('Lengths dont match')
+                raise Exception(f'Lengths dont match 1:{specimen1} 2:{specimen2} c1:{uno} c2:{duo}')
             if None in uno or None in duo:
-                print(f'1:{specimen1} 2:{specimen2} c1:{uno} c2:{duo}')
-                raise Exception('None detected')
+                raise Exception(f'None detected 1:{specimen1} 2:{specimen2} c1:{uno} c2:{duo}')
     else:
         print('Success!!!')
 
-def GA(path:str,population:int,mutation_chance:float,n:float,iterations:int):
+def GA(path:str, population_count:int, mutation_chance:float, n:float, iterations:int):
     cities = city_cord_reader(path)
     distances = city_dist_map(cities)
     N = len(cities)
-    Population = init_population(N,population)
+    Population = init_population(N,population_count)
     for i in range(iterations):
         Parents = proportional_selection(Population,distances,n)
         Offspring = offspring(Parents)
         # apply mutation to mutation_chance offspring
-        # select best population (num of population)
+        Population = selection_of_best_individuals(Population,distances,population_count)
+    best = selection_of_best_individuals(Population,distances,population_count)[0]
+    plot_path(cities,best)
 
 
 # test_cycle_cross_over(10000)
