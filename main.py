@@ -32,8 +32,8 @@ def cycle_cross_over(P1: list,P2: list) -> list[list[int],list[int]]:
     return [get_child(P1,P2),get_child(P2,P1)]
 
 def offspring(parents: list[list]) -> list[list[int]]:
-    mothers = parents[:len(parents)/2]
-    fathers = parents[len(parents)/2:]
+    mothers = parents[:int(len(parents)/2)]
+    fathers = parents[int(len(parents)/2):]
     kids = []
     for mother, father in zip(mothers, fathers):
         kids.extend(cycle_cross_over(mother, father))
@@ -45,6 +45,13 @@ def mutation(P: list) -> list[int]:
     i2 = P.index(chosen[1])
     P[i1],P[i2] = P[i2],P[i1]
     return P
+
+def random_mutation(population: list[list], mutation_chance: float) -> list[list]:
+    for i in range(len(population)):
+        will_it_mut = np.random.uniform(0,1)
+        if will_it_mut <= mutation_chance:
+            population[i] = mutation(population[i])
+    return population
 
 def city_cord_reader(path: str) -> list[tuple[float,float]]:
     '''Reads the file provided as a path that contains the coordinates of cities\n
@@ -130,17 +137,20 @@ def selection_of_best_individuals(population: list[list], distance_map: dict, po
 def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
     '''Takes the city coordinated as a list of (x,y) tuples
       as well as the chromosome that determines the path'''
-    for city in city_coordinates:
+    for i,city in enumerate(city_coordinates):
         x,y = city
         plt.plot(x,y,'ro')
+        plt.text(x+0.05,y+0.05,str(i))
 
-    for i,city in enumerate(city_coordinates[:-1]):
-        x,y = city
-        xi,yi = city_coordinates[i+1]
+    coords = {i+1:city for i,city in enumerate(city_coordinates)}
+
+    for i in range(len(chromosome[:-1])):
+        x,y = coords[chromosome[i]] # start loc coords
+        xi,yi = coords[chromosome[i+1]]
         plt.plot([x,xi],[y,yi],'k')
+    x,y = coords[chromosome[0]]
+    xi,yi = coords[chromosome[-1]]
 
-    x,y = city_coordinates[0]
-    xi,yi = city_coordinates[-1]    
     plt.plot([x,xi],[y,yi],'k')
     plt.axis('off')
     plt.show()
@@ -165,17 +175,25 @@ def GA(path:str, population_count:int, mutation_chance:float, n:float, iteration
     N = len(cities)
     Population = init_population(N,population_count)
     for i in range(iterations):
-        Parents = proportional_selection(Population,distances,n)
+        Parents = proportional_selection(population = Population,
+                                         distance_map = distances,
+                                         n = n)
         Offspring = offspring(Parents)
-        # apply mutation to mutation_chance offspring
-        Population = selection_of_best_individuals(Population,distances,population_count)
+        Offspring = random_mutation(Offspring, mutation_chance=mutation_chance)
+        Parents.extend(Offspring)
+        Population = selection_of_best_individuals(Parents,distances,population_count)
     best = selection_of_best_individuals(Population,distances,population_count)[0]
+    # print(best)
     plot_path(cities,best)
 
-
+GA(path='Traveling Salesman Problem Data-20230314\cities_1.txt',
+   population_count = 250,
+   mutation_chance=0.2,
+   iterations= 1000,
+   n = 0.8)
 # test_cycle_cross_over(10000)
 
-P1 = [3,4,5,6,7,8]
+# P1 = [3,4,5,6,7,8]
 # P2 = [8,5,6,7,3,4]
 # P1 = [2,4,5,1,3]
 # P2 = [1,5,4,2,3]
@@ -193,5 +211,6 @@ P1 = [3,4,5,6,7,8]
 
 # plot_path(cords,P1)
 # pop = init_population(6,100)
-# print(sum(proportional_selection(pop,distances)))
+# herro = proportional_selection(pop,distances,0.8)
+# print(len(herro))
 # print(max(selection(pop,distances)))
