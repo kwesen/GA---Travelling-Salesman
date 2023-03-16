@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from time import perf_counter
+import warnings
 
 def timer(function):
     '''General purpose timing decorator\n
@@ -140,7 +141,7 @@ def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
     for i,city in enumerate(city_coordinates):
         x,y = city
         plt.plot(x,y,'ro')
-        plt.text(x+0.05,y+0.05,str(i))
+        plt.text(x+0.1,y+0.1,str(i+1),color='#FF0000')
 
     coords = {i+1:city for i,city in enumerate(city_coordinates)}
 
@@ -148,6 +149,7 @@ def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
         x,y = coords[chromosome[i]] # start loc coords
         xi,yi = coords[chromosome[i+1]]
         plt.plot([x,xi],[y,yi],'k')
+
     x,y = coords[chromosome[0]]
     xi,yi = coords[chromosome[-1]]
 
@@ -169,12 +171,12 @@ def test_cycle_cross_over(repeats):
     else:
         print('Success!!!')
 
-def GA(path:str, population_count:int, mutation_chance:float, n:float, iterations:int):
+def GA(path: str, population_count: int, mutation_chance: float, n: float, iterations: int):
     cities = city_cord_reader(path)
     distances = city_dist_map(cities)
     N = len(cities)
     Population = init_population(N,population_count)
-    for i in range(iterations):
+    for iteration in range(iterations):
         Parents = proportional_selection(population = Population,
                                          distance_map = distances,
                                          n = n)
@@ -183,14 +185,18 @@ def GA(path:str, population_count:int, mutation_chance:float, n:float, iteration
         Parents.extend(Offspring)
         Population = selection_of_best_individuals(Parents,distances,population_count)
     best = selection_of_best_individuals(Population,distances,population_count)[0]
-    # print(best)
+    # maybe forgo mutation on final iteration?
+    # this should get fixed along with the fitness function but i dunno
+    print(best)
     plot_path(cities,best)
 
-GA(path='Traveling Salesman Problem Data-20230314\cities_1.txt',
-   population_count = 250,
-   mutation_chance=0.2,
-   iterations= 1000,
-   n = 0.8)
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    GA(path='Traveling Salesman Problem Data-20230314\cities_1.txt',
+       population_count = 250,
+       mutation_chance = 0.2,
+       iterations = 1000,
+       n = 0.8)
 # test_cycle_cross_over(10000)
 
 # P1 = [3,4,5,6,7,8]
@@ -209,7 +215,7 @@ GA(path='Traveling Salesman Problem Data-20230314\cities_1.txt',
 # distances = city_dist_map(cords)
 # print(distances[1][9])
 
-# plot_path(cords,P1)
+# plot_path(cords,[1, 2, 3, 4, 9, 6, 7, 8, 5, 10])
 # pop = init_population(6,100)
 # herro = proportional_selection(pop,distances,0.8)
 # print(len(herro))
