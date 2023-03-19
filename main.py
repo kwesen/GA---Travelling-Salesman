@@ -111,8 +111,9 @@ def probability(tis:list[float]) -> list[float]:
 
 def fitness(population: list[list],distance_map:dict):
     fis = [invert_cost(cost_value_individual(distance_map,pop)) for pop in population]
-    mf = max(fis)
-    tis = [mf - fi for fi in fis]
+    # mf = max(fis)
+    # tis = [mf - fi for fi in fis]
+    tis = fis
     return tis
 
 def proportional_selection(population:list[list], distance_map: dict, n:float):
@@ -132,7 +133,7 @@ def proportional_selection(population:list[list], distance_map: dict, n:float):
 def selection_of_best_individuals(population: list[list], distance_map: dict, population_count: int) -> list[list]:
     tis = fitness(population, distance_map)
     probs = probability(tis)
-    best_individuals = [x for _,x in sorted(zip(probs,population), key= lambda pair: pair[0],reverse=False)] # nice general sorting thanks stack overflow <3        
+    best_individuals = [x for _,x in sorted(zip(probs,population), key= lambda pair: pair[0],reverse=True)] # nice general sorting thanks stack overflow <3        
     return best_individuals[:population_count]
 
 def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
@@ -192,7 +193,7 @@ def GA(path: str, population_count: int, mutation_chance: float, n: float, itera
 
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
-    GA(path='Traveling Salesman Problem Data-20230314\cities_1.txt',
+    GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
        population_count = 250,
        mutation_chance = 0.2,
        iterations = 1000,
