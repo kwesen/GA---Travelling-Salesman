@@ -184,17 +184,15 @@ def GA(path: str, population_count: int, mutation_chance: float, n: float, itera
         Offspring = random_mutation(Offspring, mutation_chance)
         Parents.extend(Offspring)
         Population = selection_of_best_individuals(Parents,distances,population_count)
-        best = Population[0]
+    best = Population[0]
     # best = selection_of_best_individuals(Population,distances,population_count)[0]
     # best = Population[0]
-    # maybe forgo mutation on final iteration?
-    # this should get fixed along with the fitness function but i dunno
     print(best)
     plot_path(cities,best)
 
 with warnings.catch_warnings():
-    warnings.simplefilter('error')
-    GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
+    warnings.simplefilter('ignore')
+    GA(path='Traveling Salesman Problem Data-20230314\cities_1.txt',
        population_count = 250,
        mutation_chance = 0.2,
        iterations = 1000,
@@ -215,6 +213,8 @@ with warnings.catch_warnings():
 
 # cords : list[tuple] = city_cord_reader('Traveling Salesman Problem Data-20230314\cities_1.txt')
 # distances = city_dist_map(cords)
+# ch = [9, 1, 8, 10, 3, 2, 7, 6, 5, 4]
+# print(cost_value_individual(distances,ch))
 # print(distances[1][9])
 
 # plot_path(cords,[1, 2, 3, 4, 9, 6, 7, 8, 5, 10])
