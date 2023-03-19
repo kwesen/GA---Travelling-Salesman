@@ -96,8 +96,8 @@ def city_dist_map(cities: list[tuple]) -> dict:
 
 def cost_value_individual(distance_map: dict, chromosome: list[int]) -> float:
     cost = distance_map[chromosome[-1]][chromosome[0]]
-    for i in range(len(chromosome)):
-        cost += distance_map[chromosome[i]][i+1]
+    for i in range(len(chromosome)-1):
+        cost += distance_map[chromosome[i]][chromosome[i+1]]
     return cost
 
 def invert_cost(cost: float) -> float:
@@ -132,7 +132,7 @@ def proportional_selection(population:list[list], distance_map: dict, n:float):
 def selection_of_best_individuals(population: list[list], distance_map: dict, population_count: int) -> list[list]:
     tis = fitness(population, distance_map)
     probs = probability(tis)
-    best_individuals = [x for _,x in sorted(zip(probs,population), key= lambda pair: pair[0])] # nice general sorting thanks stack overflow <3        
+    best_individuals = [x for _,x in sorted(zip(probs,population), key= lambda pair: pair[0],reverse=False)] # nice general sorting thanks stack overflow <3        
     return best_individuals[:population_count]
 
 def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
@@ -181,18 +181,20 @@ def GA(path: str, population_count: int, mutation_chance: float, n: float, itera
                                          distance_map = distances,
                                          n = n)
         Offspring = offspring(Parents)
-        Offspring = random_mutation(Offspring, mutation_chance=mutation_chance)
+        Offspring = random_mutation(Offspring, mutation_chance)
         Parents.extend(Offspring)
         Population = selection_of_best_individuals(Parents,distances,population_count)
-    best = selection_of_best_individuals(Population,distances,population_count)[0]
+        best = Population[0]
+    # best = selection_of_best_individuals(Population,distances,population_count)[0]
+    # best = Population[0]
     # maybe forgo mutation on final iteration?
     # this should get fixed along with the fitness function but i dunno
     print(best)
     plot_path(cities,best)
 
 with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
-    GA(path='Traveling Salesman Problem Data-20230314\cities_1.txt',
+    warnings.simplefilter('error')
+    GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
        population_count = 250,
        mutation_chance = 0.2,
        iterations = 1000,
