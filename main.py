@@ -1,23 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from time import perf_counter
-import warnings
-
-def timer(function):
-    '''General purpose timing decorator\n
-    Before using make sure perf_counter is imported'''
-    def wrapper(*args,**kwargs):
-        start = perf_counter()
-        function(*args,**kwargs)
-        stop = perf_counter()
-        print(f'Execution took {stop-start}')
-    return wrapper
 
 def cycle_cross_over(P1: list,P2: list) -> list[list[int],list[int]]:
     def get_child(P1: list,P2: list): 
         Offspring: list = [None for i in range(len(P1))]
         index = 0
-        val_t_find = ''
+        val_t_find = np.nan
         while val_t_find not in Offspring:
             val_insert = P1[index]
             Offspring[index] = val_insert
@@ -104,17 +93,14 @@ def invert_cost(cost: float) -> float:
     cost_val = 1/cost
     return cost_val
 
-def probability(tis:list[float]) -> list[float]:
-    sum_tis = sum(tis)
-    pie = [ti/sum_tis for ti in tis]
+def probability(fis:list[float]) -> list[float]:
+    sum_fis = sum(fis)
+    pie = [ti/sum_fis for ti in fis]
     return pie
 
 def fitness(population: list[list],distance_map:dict):
     fis = [invert_cost(cost_value_individual(distance_map,pop)) for pop in population]
-    # mf = max(fis)
-    # tis = [mf - fi for fi in fis]
-    tis = fis
-    return tis
+    return fis
 
 def proportional_selection(population:list[list], distance_map: dict, n:float):
     tis = fitness(population, distance_map)
@@ -136,31 +122,31 @@ def selection_of_best_individuals(population: list[list], distance_map: dict, po
     best_individuals = [x for _,x in sorted(zip(probs,population), key= lambda pair: pair[0],reverse=True)] # nice general sorting thanks stack overflow <3        
     return best_individuals[:population_count]
 
-def plot_path(city_coordinates: list[tuple], chromosome: list[int]) -> None:
+def plot_path(city_coordinates: list[tuple], chromosome: list[int], distance_map) -> None:
     '''Takes the city coordinated as a list of (x,y) tuples
       as well as the chromosome that determines the path'''
     for i,city in enumerate(city_coordinates):
         x,y = city
-        plt.plot(x,y,'ro')
-        plt.text(x+0.1,y+0.1,str(i+1),color='#FF0000')
+        plt.plot(x,y,'o', color = '#9966FF')
+        plt.text(x+0.1,y+0.1,str(i+1),color='#FF0FA0')
 
     coords = {i+1:city for i,city in enumerate(city_coordinates)}
 
     for i in range(len(chromosome[:-1])):
         x,y = coords[chromosome[i]] # start loc coords
         xi,yi = coords[chromosome[i+1]]
-        plt.plot([x,xi],[y,yi],'k')
+        plt.plot([x,xi],[y,yi],color = '#666666')
 
     x,y = coords[chromosome[0]]
     xi,yi = coords[chromosome[-1]]
 
-    plt.plot([x,xi],[y,yi],'k')
+    plt.plot([x,xi],[y,yi],color = '#666666')
     plt.axis('off')
+    plt.title(f'Distance: {cost_value_individual(distances, chromosome)}')
     plt.show()
 
 def test_cycle_cross_over(repeats):
     for i in range(repeats):
-        tester = []
         population = init_population(10,300)
         pool1, pool2 = population[:150],population[150:]
         for specimen1,specimen2 in zip(pool1,pool2):
@@ -173,6 +159,7 @@ def test_cycle_cross_over(repeats):
         print('Success!!!')
 
 def GA(path: str, population_count: int, mutation_chance: float, n: float, iterations: int):
+    # start = perf_counter()
     cities = city_cord_reader(path)
     distances = city_dist_map(cities)
     N = len(cities)
@@ -188,38 +175,34 @@ def GA(path: str, population_count: int, mutation_chance: float, n: float, itera
     best = Population[0]
     # best = selection_of_best_individuals(Population,distances,population_count)[0]
     # best = Population[0]
-    print(best)
-    plot_path(cities,best)
+    # print(f'Execution time: {perf_counter()- start} seconds')
+    # print(f'Distance: {cost_value_individual(distances, best)}')
 
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
-    GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
-       population_count = 250,
-       mutation_chance = 0.2,
-       iterations = 1000,
-       n = 0.8)
-# test_cycle_cross_over(10000)
+    return cities, best, distances
 
-# P1 = [3,4,5,6,7,8]
-# P2 = [8,5,6,7,3,4]
-# P1 = [2,4,5,1,3]
-# P2 = [1,5,4,2,3]
-# expected = [2,5,4,1,3]
-# P1 = [3,4,2,1,5]
-# P2 = [4,1,5,2,3]
-# print(P2)
-# cross = cycle_cross_over(P1,P2)
-# print(cross)
-# test = mutation(P1.copy())        
+# cities, best, distances = GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
+#                 population_count = 250,
+#                 mutation_chance = 0.2,
+#                 iterations = 1000,
+#                 n = 0.8)
+# print(best)
+# plot_path(cities,best, distances)
 
-# cords : list[tuple] = city_cord_reader('Traveling Salesman Problem Data-20230314\cities_1.txt')
-# distances = city_dist_map(cords)
-# ch = [9, 1, 8, 10, 3, 2, 7, 6, 5, 4]
-# print(cost_value_individual(distances,ch))
-# print(distances[1][9])
-
-# plot_path(cords,[1, 2, 3, 4, 9, 6, 7, 8, 5, 10])
-# pop = init_population(6,100)
-# herro = proportional_selection(pop,distances,0.8)
-# print(len(herro))
-# print(max(selection(pop,distances)))
+with open('data.txt', 'r+') as file:
+    start = perf_counter()
+    iter = 1
+    for P in {100, 300, 500}:
+        for en in {0.5, 0.7, 0.9}:
+            for pm in {0.1, 0.3, 0.5}:
+                dist = []
+                for i in range(10):
+                    cities, best, distances = GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
+                                                population_count = P,
+                                                mutation_chance = pm,
+                                                iterations = 1000,
+                                                n = en)
+                    dist.append(cost_value_individual(distances, best))
+                file.write(f'P = {P} ; en = {en} ; pm = {pm} ; distance = {round(sum(dist)/10, 3)}\n')
+                print(f'Iteration {iter} / 27')
+                iter += 1
+    print(f'Execution time: {perf_counter()- start} seconds')
