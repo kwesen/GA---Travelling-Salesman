@@ -180,29 +180,29 @@ def GA(path: str, population_count: int, mutation_chance: float, n: float, itera
 
     return cities, best, distances
 
-# cities, best, distances = GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
-#                 population_count = 250,
-#                 mutation_chance = 0.2,
-#                 iterations = 1000,
-#                 n = 0.8)
-# print(best)
-# plot_path(cities,best, distances)
+cities, best, distances = GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
+                population_count = 250,
+                mutation_chance = 0.2,
+                iterations = 1000,
+                n = 0.8)
+print(best)
+plot_path(cities,best, distances)
 
-with open('data.txt', 'r+') as file:
-    start = perf_counter()
-    iter = 1
-    for P in {100, 300, 500}:
-        for en in {0.5, 0.7, 0.9}:
-            for pm in {0.1, 0.3, 0.5}:
-                dist = []
-                for i in range(10):
-                    cities, best, distances = GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
-                                                population_count = P,
-                                                mutation_chance = pm,
-                                                iterations = 1000,
-                                                n = en)
-                    dist.append(cost_value_individual(distances, best))
-                file.write(f'P = {P} ; en = {en} ; pm = {pm} ; distance = {round(sum(dist)/10, 3)}\n')
-                print(f'Iteration {iter} / 27')
-                iter += 1
-    print(f'Execution time: {perf_counter()- start} seconds')
+# with open('data.txt', 'r+') as file:
+#     start = perf_counter()
+#     iter = 1
+#     for P in {100, 300, 500}:
+#         for en in {0.5, 0.7, 0.9}:
+#             for pm in {0.1, 0.3, 0.5}:
+#                 dist = []
+#                 for i in range(10):
+#                     cities, best, distances = GA(path='Traveling Salesman Problem Data-20230314\cities_4.txt',
+#                                                 population_count = P,
+#                                                 mutation_chance = pm,
+#                                                 iterations = 1000,
+#                                                 n = en)
+#                     dist.append(cost_value_individual(distances, best))
+#                 file.write(f'P = {P} ; en = {en} ; pm = {pm} ; distance = {round(sum(dist)/10, 3)}\n')
+#                 print(f'Iteration {iter} / 27')
+#                 iter += 1
+#     print(f'Execution time: {perf_counter()- start} seconds')

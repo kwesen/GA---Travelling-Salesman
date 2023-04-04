@@ -1,4 +1,4 @@
-Population;en;pm;distance
+Population;En;Pm;Distance
 100;0.5;0.1;45.594
 100;0.5;0.5;46.456
 100;0.5;0.3;44.991
